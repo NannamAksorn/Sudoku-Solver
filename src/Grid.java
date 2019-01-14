@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.geom.Line2D;
 import java.util.LinkedList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
@@ -21,7 +22,6 @@ public class Grid extends JPanel  {
 	Cell[][] Cols = new Cell[9][9];
 	
 	public Grid(int[][] cells) {
-		// TODO Auto-generated constructor stub
 		setBorder(BorderFactory.createLineBorder(Color.black));
 		setLayout(grid_layout);
 		
@@ -38,50 +38,25 @@ public class Grid extends JPanel  {
 		int row = cell.row;
 		int col = cell.col;
 		int val = cell.value;
-		
-		for (Cell c : Rows[row]) {
-			if (c.value == 0 ) {
-				System.out.println("eliminate row" + val);
-				waitInput();
-				c.possible.remove((Object) val);
-				if(c.possible.size() == 1) {
-					c.value = c.possible.peek();
-					eliminate(c);
+		Cell[][] sets = {Rows[row], Cols[col], getBlock(cell)};
+		for (Cell[] set: sets)
+			for (Cell c : set) 
+				if (c.value == 0 ) {
+					System.out.println("eliminate row" + val);
+					waitInput();
+					c.possible.remove((Object) val);
+					if(c.possible.size() == 1) {
+						c.value = c.possible.peek();
+						eliminate(c);
+					}
 				}
-			}
-		}
-		for (Cell c: Cols[col]) {
-			if (c.value == 0 ) {
-				System.out.println("eliminate col" + val);
-				waitInput();
-				c.possible.remove((Object) val);
-				if(c.possible.size() == 1) {
-					c.value = c.possible.peek();
-					eliminate(c);
-				}
-			}
-		}
-		for (Cell c: getBlock(cell)) {
-			if (c.value == 0 ) {
-				System.out.println("eliminate group" + val);
-				waitInput();
-				c.possible.remove((Object) val);
-				if(c.possible.size() == 1) {
-					c.value = c.possible.peek();
-					eliminate(c);
-				}
-			}
-		}
 	}
 	
 	public void eliminateAll() {
-		for (Cell[] cells : Rows) {
-			for (Cell cell : cells) {
-				if (cell.value != 0 ) {
-					eliminate(cell);
-				}
-			}			
-		}
+		for (Cell[] cells : Rows) 
+			for (Cell cell : cells) 
+				if (cell.value != 0 )
+					eliminate(cell);			
 	}
 	
 	public void hiddenSingle(Cell[][] cells_group) {
@@ -169,7 +144,6 @@ public class Grid extends JPanel  {
         	System.out.println(" ");
 //			System.in.read();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		repaint();

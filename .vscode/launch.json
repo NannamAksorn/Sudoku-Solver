@@ -4,27 +4,22 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "java",
-            "name": "Debug (Launch) - External Terminal",
-            "request": "launch",
-            "console": "externalTerminal",
-            "mainClass": "Solver"
-        },
-        {
-            "type": "java",
-            "name": "Debug (Launch) - Current File",
-            "request": "launch",
-            "mainClass": "${file}",
-            "externalConsole": true,
-        },
-        {
-            "type": "java",
-            "name": "Debug (Launch)-Solver<sudoku-solver>",
+            "name": "Debug Arguments Prompt",
             "request": "launch",
             "mainClass": "Solver",
-            "projectName": "sudoku-solver",
-            "externalConsole": true,
+            "args": "2-9------ 6-----348 --4-5---- --8----64 5--3-4--2 ---5-8--- -----9-5- --14-2-7- --27-----",
+            "console": "integratedTerminal",
+        },
+        {
+            "type": "java",
+            "name": "Debug Terminal",
+            "request": "launch",
+            "console": "externalTerminal",
+            "mainClass": "Solver",
+
         },
         
     ],

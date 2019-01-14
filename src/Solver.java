@@ -43,23 +43,32 @@ import javax.swing.JFrame;
 public class Solver{
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		System.out.println("Enter Sudoku grid.: ");
 		Scanner input = new Scanner(System.in);
+		String[] input_string = new String[9];
 		int[][] input_cells  = new int[9][9];
-		for (int i = 0; i < 9; i++) {
-			String line = input.next();
-			if (line.length() != 9) {
-				System.out.println("Error input at line " + i);
-				break;
-			}else {
-				for (int j = 0; j < 9; j++) {
-					int value = Character.getNumericValue(line.charAt(j));
-					if (value < 1 || value > 9) {
-						value = 0;
-					}
-					input_cells[i][j] = value;  
+
+		if (args.length > 0) {
+			input_string = args;
+		}else{
+			System.out.println("Enter Sudoku grid.: ");
+			for (int i = 0; i < 9; i++) {
+				String line = input.next();
+				if (line.length() != 9) {
+					System.out.println("Error input at line " + i);
+					return ;
+				}else {
+					input_string[i] = line;
 				}
+			}
+		}
+		for (int i = 0; i < 9; i++) {
+			String line = input_string[i];
+			for (int j = 0; j < 9; j++) {
+				int value = Character.getNumericValue(line.charAt(j));
+				if (value < 1 || value > 9) {
+					value = 0;
+				}
+				input_cells[i][j] = value;  
 			}
 		}
 
