@@ -4,13 +4,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.geom.Line2D;
+
 import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-
-
-
+import javax.xml.namespace.QName;
 
 public class Grid extends JPanel  {
 	/**
@@ -20,6 +19,7 @@ public class Grid extends JPanel  {
 	GridLayout grid_layout = new GridLayout(9,9);
 	Cell[][] Rows = new Cell[9][9];
 	Cell[][] Cols = new Cell[9][9];
+	Cell[][] Blocks = new Cell[9][9];
 	
 	public Grid(int[][] cells) {
 		setBorder(BorderFactory.createLineBorder(Color.black));
@@ -33,6 +33,9 @@ public class Grid extends JPanel  {
 				  add(temp);
 			}
 		}
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 3; j++)
+			Blocks[i*3 + j] = getBlock(Rows[i*3][j*3]);
 	}
 	public void eliminate(Cell cell) {
 		int row = cell.row;
@@ -43,7 +46,7 @@ public class Grid extends JPanel  {
 			for (Cell c : set) 
 				if (c.value == 0 ) {
 					System.out.println("eliminate row" + val);
-					waitInput();
+					// waitInput();
 					c.possible.remove((Object) val);
 					if(c.possible.size() == 1) {
 						c.value = c.possible.peek();
@@ -59,8 +62,10 @@ public class Grid extends JPanel  {
 					eliminate(cell);			
 	}
 	
-	public void hiddenSingle(Cell[][] cells_group) {
-//		search row, col, block for unique missing number in unknown group
+	public Boolean hiddenSingle(Cell[][] cells_group) {
+//		search row, col, block for unique missing number in unknown group 
+// 		return True if there is change
+		Boolean isChange = false;
 		for (Cell[] cells : cells_group) {
 			LinkedList<Integer> unique = new LinkedList<Integer>();
 			LinkedList<Integer> non_unique = new LinkedList<Integer>();
@@ -77,25 +82,27 @@ public class Grid extends JPanel  {
 				if (cell.value == 0 )
 					for (Integer number : unique)
 						if (cell.possible.contains(number)){
+							isChange = true;
 							System.out.println("missing");
-							waitInput();
+							// waitInput();
 							cell.value = number;
 							eliminate(cell);
 						}
 		}
+		return isChange;
 	}
-	public void hiddenSingleAll() {
-		Cell[][] temp = this.Rows.clone();
+	public boolean hiddenSingleAll() {
 		boolean halt = false;
 		while (!halt) {
-			hiddenSingle(this.Rows);
-			hiddenSingle(this.Cols);
-			halt = temp == this.Rows;
-			temp = this.Rows;
+			halt = !(hiddenSingle(this.Rows) ||
+			hiddenSingle(this.Cols) ||
+			hiddenSingle(this.Blocks));
 		}
+		return halt;
 		
 	}
-	public void nakedpair(Cell[][] cells_group) {
+	public Boolean nakedpair(Cell[][] cells_group) {
+		Boolean isChange = false;
 		for (Cell[] group : cells_group) {
 			LinkedList<LinkedList<Integer>> pairs = new LinkedList<>();
 			for (Cell cell : group) {
@@ -114,7 +121,7 @@ public class Grid extends JPanel  {
 				if (!nakedpair.contains(cell.possible)){
 					for (LinkedList<Integer> pair : nakedpair) {
 						System.out.println("nakedpair" + pair.toString());
-						cell.possible.removeAll(pair) ;
+						isChange = isChange || cell.possible.removeAll(pair) ;
 					}
 					if (cell.possible.size() == 1){
 						cell.value = cell.possible.pop();
@@ -123,26 +130,92 @@ public class Grid extends JPanel  {
 				}
 			}
 		}
+		return isChange;
 	}
-	public void nakedpairAll(){
-		Cell[][] temp = this.Rows.clone();
+	public Boolean nakedpairAll(){
 		boolean halt = false;
 		while (!halt) {
-			nakedpair(this.Rows);
-			nakedpair(this.Cols);
-			halt = temp == this.Rows;
-			temp = this.Rows;
+			halt = !(nakedpair(this.Blocks) ||
+			nakedpair(this.Rows) ||
+			nakedpair(this.Cols));
 		}
+		return halt;
 	}
 
-	public void pointingPair(){
-		
+	public boolean pointingPair(){
+		boolean isChange = false;
+		for (Cell[] group : Blocks)
+			for (int i = 0; i < group.length; i++) {
+				Cell cell1 = group[i];
+				if (cell1.value == 0){
+					for (Integer number : cell1.possible) {
+						int link = 0;
+						for (int j = i; j < group.length; j++) {
+							Cell cell2  = group[j];
+							if (cell2.value == 0 &&
+							cell2.possible.contains(number)){
+								link++;
+								if (check_pointing(cell1, cell2, number))
+									for (Cell curCell : group)
+										if (curCell != cell1 && curCell != cell2){
+											isChange = isChange  || curCell.possible.remove(number);
+											if (curCell.possible.size() == 1 && curCell.value == 0){
+												curCell.value = curCell.possible.pop();
+												eliminate(curCell);
+											}
+										}
+
+								}
+						}
+							if ( link == 1 ) {
+								for (Cell curCell : group)
+									if (curCell != cell1 && curCell.equals(cell1)){
+									}
+								}
+								
+					}
+				}
+		}
+		repaint();
+		return !isChange;
+	}
+	public Boolean check_pointing(Cell cell1, Cell cell2, Integer number){
+		// return true if no candidate in row or col
+		if (cell1.row == cell2.row) {
+
+			for (Cell curCell : Rows[cell1.row]) 
+				if (curCell.value == 0 &&
+				curCell != cell1 && 
+				curCell != cell2 &&
+				curCell.possible.contains(number))
+					return false;
+		} else if (cell1.col == cell2.col){
+			for (Cell curCell : Cols[cell1.col]) 
+			if (curCell.value == 0 &&
+			curCell != cell1 && 
+			curCell != cell2 &&
+			curCell.possible.contains(number))
+					return false;
+		} else return false;
+		System.out.println("pointing " + cell1.row + cell1.col + number);
+			
+		return true;
+	}
+	public boolean runAll() {
+		boolean halt = false;
+		while (!halt) {
+			halt = (hiddenSingleAll() && 
+			nakedpairAll() &&
+			pointingPair());
+			repaint();
+		}
+		return halt;
 	}
 
 	public void waitInput() {
         try {
         	System.out.println(" ");
-//			System.in.read();
+			System.in.read();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
