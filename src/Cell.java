@@ -17,6 +17,7 @@ public class Cell extends JPanel{
 	public int value;
 	public LinkedList<Integer> possible = new LinkedList<Integer>(
 			Arrays.asList(1,2,3,4,5,6,7,8,9));
+	public Color color = Color.red;
 	
 	public Cell(int row, int col, int value)  {
 		this.row = row;
@@ -26,10 +27,15 @@ public class Cell extends JPanel{
 		}
 		setBorder(BorderFactory.createLineBorder(Color.black));
 	}
+	public Cell(int row, int col, int value, Color c)  {
+		this(row,col,value);
+		this.color = c;
+	}
 	
     @Override 
     public void paintComponent(Graphics g) {
     	if (this.value != 0) {
+			g.setColor(this.color);
     		g.setFont(new Font("TimesRoman", Font.PLAIN, 48)); 
     		g.drawString(String.valueOf(this.value) , getWidth() / 3, (int) (getHeight() / 1.5));
     	}

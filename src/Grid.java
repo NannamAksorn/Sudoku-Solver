@@ -28,7 +28,12 @@ public class Grid extends JPanel  {
 		
 		for (int i = 0; i < 9; i++) {
 			  for (int j = 0; j < 9; j++) {
-				  Cell temp = new Cell(i,j,cells[i][j]);
+				Cell temp = null;
+				  if (cells[i][j] != 0){
+					temp = new Cell(i,j,cells[i][j],Color.BLACK);
+				  }else{  
+				  	temp = new Cell(i,j,cells[i][j]);
+				  }
 				  this.Rows[i][j] = temp;
 				  this.Cols[j][i] = temp;	
 				  add(temp);
@@ -179,7 +184,7 @@ public class Grid extends JPanel  {
 					}
 				}
 		}
-		repaint();
+		// repaint();
 		return isChange;
 	}
 	public Boolean check_pointing(Cell cell1, Cell cell2, Integer number){
@@ -282,7 +287,7 @@ public class Grid extends JPanel  {
 			&& !pointingPair()
 			&& !hiddenPairAll()
 			);
-			repaint();
+			 repaint();
 		}
 		return halt;
 	}
@@ -295,7 +300,7 @@ public class Grid extends JPanel  {
 			e.printStackTrace();
 		}
 		System.out.println(counter);
-		repaint();
+		// repaint();
 	}
 	
 	public Cell[] getBlock(Cell cell) {
