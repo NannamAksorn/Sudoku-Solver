@@ -1,65 +1,58 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Random;
 import java.util.Scanner;
 import javax.swing.JFrame;
-//p1
-// --5----32
-// --------5
-// ---61----
-// --2--3---
-// 7-------6
-// ---4--1--
-// ----82---
-// 8--------
-// 41----7--
-//p2
-// ---------
-// -23---46-
-// 8--6-7--9
-// 5---3---7
-// 9-------8
-// -8-----1-
-// --2---3--
-// ---5-8---
-// ----7----
-//p3
-// ---------
-// --381----
-// --2--756-
-// --1----8-
-// -4-----3-
-// -5----6--
-// -689--4--
-// ----459--
-// ---------
-//p4
-// -6-9-----
-// --4---3-5
-// -1-3---2-
-// ------1-4
-// ----2----
-// 8-3------
-// -5---1-8-
-// 2-8---9--
-// -----7-3-
 
-//  -----4-6-
-//  --4-3-1--
-//  --7-----2
-//  --57--92-
-//  -76------
-//  -8--6----
-//  7-----68-
-//  6--9-5-3-
-//  ----4-21-
 public class Solver{	
+
+	public static final boolean SHOW_GUI = true;
+
+	public static final boolean SHOW_STATUS = true;
+
+	public static final boolean TYPE_INPUT = false;
+	public static final boolean RANDOM_FILE = false;
+
+	public static final String FILE_NAME = "testdata" + ".txt";
+
+
 	public static void main(String[] args) {
-		Scanner input = new Scanner(System.in);
+		Scanner input;
+		try {
+			//pick random dataset file
+			File file = null;
+			if (RANDOM_FILE){
+				File dir = new File("dataset");
+				File[] files = dir.listFiles();
+				Random rand = new Random();
+				file = files[rand.nextInt(files.length)];
+			}else{
+				file = new File("dataset/" + FILE_NAME);
+			}
+			input = new Scanner(file);
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			input = new Scanner(System.in);
+		}
+		if (TYPE_INPUT){
+			input = new Scanner(System.in);
+		}
+
 		String[] input_string = new String[9];
 		int[][] input_cells  = new int[9][9];
 
-		if (args.length > 0) {
-			input_string = args;
-		}else{
-			System.out.println("Enter Sudoku grid.: ");
+		// if (args.length > 0) {
+		// 	input_string = args;
+		// }else{
+		int dataset_count = input.nextInt();
+		int total_blank = 0;
+		int solve_count = 0;
+		int error_count = 0;
+
+		if(1 > dataset_count && dataset_count > 1000) return;
+		for (int loop_id = 0; loop_id < dataset_count; loop_id++) {
+			int dataset_number = input.nextInt();
 			for (int i = 0; i < 9; i++) {
 				String line = input.next();
 				if (line.length() != 9) {
@@ -69,34 +62,62 @@ public class Solver{
 					input_string[i] = line;
 				}
 			}
-		}
-		for (int i = 0; i < 9; i++) {
-			String line = input_string[i];
-			for (int j = 0; j < 9; j++) {
-				int value = Character.getNumericValue(line.charAt(j));
-				if (value < 1 || value > 9) {
-					value = 0;
+	
+			for (int i = 0; i < 9; i++) {
+				String line = input_string[i];
+				for (int j = 0; j < 9; j++) {
+					int value = Character.getNumericValue(line.charAt(j));
+					if (value < 1 || value > 9) {
+						value = 0;
+					}
+					input_cells[i][j] = value;  
 				}
-				input_cells[i][j] = value;  
 			}
-		}
+			Grid grid = new Grid(input_cells);	
+			if(SHOW_GUI){
+				JFrame frame = new JFrame ("Sudoku Solver Question: " + dataset_number);
+				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				frame.setSize(630,630);
+				frame.setLocationRelativeTo(null);
+				frame.add(grid);
+				frame.setVisible(true);
+				frame.repaint();
+			}
 
+			System.out.println(dataset_number);	
+			try {
+				grid.eliminateAll();
+				grid.runAll();
+			} catch (Exception e) {
+				System.out.println("Error");
+				error_count++;
+				continue;
+			}
+			int blank_count = grid.printBlackCount();
+			if (blank_count == 0 ){
+				solve_count++;
+			}else{
+				total_blank += blank_count;
+			}
+			for (int i = 0; i < 9; i++) {
+				for (int j = 0; j < 9; j++) {
+					if(grid.Rows[i][j].value == 0){
+						System.out.print("-");
+					}else{
+						System.out.print(grid.Rows[i][j].value);
+					}
+				}
+				System.out.println("");
+			}
+			if (SHOW_STATUS){
+				System.out.println("total_error = "  + error_count);
+				System.out.println("total_blank = "  + total_blank);
+				System.out.println("total_solve = "  + solve_count + "/" + dataset_count);
+			}
+			
+		}
 		
-		Grid grid = new Grid(input_cells);
-		
-	    JFrame frame = new JFrame ("Sudoku Solver");
-	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    frame.setSize(630,630);
-	    frame.setLocationRelativeTo(null);
-	    frame.add(grid);
-	    frame.setVisible(true);
-	    frame.repaint();
-	    
-		grid.eliminateAll();
-		grid.runAll();
-		
-		input.close();
-		System.out.println("Done");
+	input.close();
 	}
 
 }

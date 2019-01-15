@@ -4,18 +4,19 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.geom.Line2D;
-
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import javax.xml.namespace.QName;
 
 public class Grid extends JPanel  {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	public static int counter = 0;
 	GridLayout grid_layout = new GridLayout(9,9);
 	Cell[][] Rows = new Cell[9][9];
 	Cell[][] Cols = new Cell[9][9];
@@ -45,7 +46,7 @@ public class Grid extends JPanel  {
 		for (Cell[] set: sets)
 			for (Cell c : set) 
 				if (c.value == 0 ) {
-					System.out.println("eliminate row" + val);
+					// System.out.println("eliminate row" +c.row+c.col+ val);
 					// waitInput();
 					c.possible.remove((Object) val);
 					if(c.possible.size() == 1) {
@@ -83,7 +84,7 @@ public class Grid extends JPanel  {
 					for (Integer number : unique)
 						if (cell.possible.contains(number)){
 							isChange = true;
-							System.out.println("missing");
+							// System.out.println("missing");
 							// waitInput();
 							cell.value = number;
 							eliminate(cell);
@@ -120,7 +121,7 @@ public class Grid extends JPanel  {
 			for (Cell cell: group) {
 				if (!nakedpair.contains(cell.possible)){
 					for (LinkedList<Integer> pair : nakedpair) {
-						System.out.println("nakedpair" + pair.toString());
+						// System.out.println("nakedpair" + cell.row + cell.col + pair.toString());
 						isChange = isChange || cell.possible.removeAll(pair) ;
 					}
 					if (cell.possible.size() == 1){
@@ -133,13 +134,11 @@ public class Grid extends JPanel  {
 		return isChange;
 	}
 	public Boolean nakedpairAll(){
-		boolean halt = false;
-		while (!halt) {
-			halt = !(nakedpair(this.Blocks) ||
+		boolean isChange = false;
+		isChange = (nakedpair(this.Blocks) ||
 			nakedpair(this.Rows) ||
 			nakedpair(this.Cols));
-		}
-		return halt;
+		return isChange;
 	}
 
 	public boolean pointingPair(){
@@ -158,7 +157,11 @@ public class Grid extends JPanel  {
 								if (check_pointing(cell1, cell2, number))
 									for (Cell curCell : group)
 										if (curCell != cell1 && curCell != cell2){
-											isChange = isChange  || curCell.possible.remove(number);
+											boolean removed = curCell.possible.remove(number);
+											if (removed){
+												// System.out.println("pointing " + curCell.row + curCell.col + number);
+											}
+											isChange = isChange  || removed;
 											if (curCell.possible.size() == 1 && curCell.value == 0){
 												curCell.value = curCell.possible.pop();
 												eliminate(curCell);
@@ -177,7 +180,7 @@ public class Grid extends JPanel  {
 				}
 		}
 		repaint();
-		return !isChange;
+		return isChange;
 	}
 	public Boolean check_pointing(Cell cell1, Cell cell2, Integer number){
 		// return true if no candidate in row or col
@@ -196,17 +199,89 @@ public class Grid extends JPanel  {
 			curCell != cell2 &&
 			curCell.possible.contains(number))
 					return false;
-		} else return false;
-		System.out.println("pointing " + cell1.row + cell1.col + number);
-			
+		} else return false;			
 		return true;
 	}
+	public boolean hiddenPair(Cell[][] groups) {
+		boolean isChange = false;
+		for (Cell[] group : groups){
+			int[] count = new int[9];
+			ArrayList<Integer> doubleAppearance = new ArrayList<>();
+			Arrays.fill(count, 0);
+			for (Cell cell : group)
+				if (cell.value == 0)
+					for (Integer number : cell.possible)
+						count[number-1]++;
+			for (int i = 0; i < 9; i++)
+				if (count[i] == 2) 
+					doubleAppearance.add(i+1);
+			ArrayList<ArrayList<Integer>> indexList = combine(doubleAppearance.size(), 2);
+			for (ArrayList<Integer> indexPair : indexList) {
+				int first = doubleAppearance.get(indexPair.get(0) - 1);
+				int second = doubleAppearance.get(indexPair.get(1) - 1);
+				LinkedList<Integer> pair = new LinkedList<Integer>(Arrays.asList(first, second));
+				LinkedList<Integer> pair2 = new LinkedList<Integer>(Arrays.asList(first, second));
+				LinkedList<Cell> cellPair = new LinkedList<>();
+				for (Cell cell : group)
+					if (cell.value == 0 &&
+						cell.possible.containsAll(pair)){
+							cellPair.add(cell);
+					}
+				if (cellPair.size() == 2) {
+					isChange = isChange || 
+								(cellPair.get(0).possible.size() != 2 || 
+								cellPair.get(1).possible.size() != 2);
+					cellPair.get(0).possible = pair;
+					cellPair.get(1).possible = pair2;
+					// System.out.println("hiddenPair" + cellPair.get(0).row + cellPair.get(1).col + pair);
+					// waitInput();
+				}
+			}				
+		}
+		return isChange;
+	}
+	public Boolean hiddenPairAll(){
+		boolean isChange = false;
+		isChange = (
+			hiddenPair(this.Blocks) ||
+			hiddenPair(this.Rows) ||
+			hiddenPair(this.Cols));
+		return isChange;
+	}
+
+	public ArrayList<ArrayList<Integer>> combine(int n, int k) {
+		ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
+		if (n <= 0 || n < k)
+			return result;
+	 
+		ArrayList<Integer> item = new ArrayList<Integer>();
+		dfs(n, k, 1, item, result);
+	 
+		return result;
+	}
+	 
+	private void dfs(int n, int k, int start, ArrayList<Integer> item,
+			ArrayList<ArrayList<Integer>> res) {
+		if (item.size() == k) {
+			res.add(new ArrayList<Integer>(item));
+			return;
+		}	 
+		for (int i = start; i <= n; i++) {
+			item.add(i);
+			dfs(n, k, i + 1, item, res);
+			item.remove(item.size() - 1);
+		}
+	}
+	
 	public boolean runAll() {
 		boolean halt = false;
 		while (!halt) {
-			halt = (hiddenSingleAll() && 
-			nakedpairAll() &&
-			pointingPair());
+			halt = (
+			hiddenSingleAll() 
+			&& !nakedpairAll()
+			&& !pointingPair()
+			&& !hiddenPairAll()
+			);
 			repaint();
 		}
 		return halt;
@@ -214,11 +289,12 @@ public class Grid extends JPanel  {
 
 	public void waitInput() {
         try {
-        	System.out.println(" ");
-			System.in.read();
+			// System.in.read();
+			counter++;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println(counter);
 		repaint();
 	}
 	
@@ -235,6 +311,16 @@ public class Grid extends JPanel  {
 				i++;
 			}
 		return cells;
+	}
+
+	public int printBlackCount(){
+		int blankCount = 0;
+		for (int i = 0; i < 9; i++)
+			for (int j = 0; j < 9; j++) 
+				if(Rows[i][j].value == 0)
+					blankCount++;
+		System.out.println(blankCount);
+		return blankCount;
 	}
     @Override 
     public void paintComponent(Graphics g) {
