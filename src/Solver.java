@@ -8,13 +8,12 @@ public class Solver{
 
 	public static final boolean SHOW_GUI = true;
 
-	public static final boolean SHOW_STATUS = true;
+	public static final boolean SHOW_STATUS = false;
 
 	public static final boolean TYPE_INPUT = false;
 	public static final boolean RANDOM_FILE = false;
 
 	public static final String FILE_NAME = "testdata" + ".txt";
-
 
 	public static void main(String[] args) {
 		Scanner input;
@@ -85,12 +84,21 @@ public class Solver{
 			}
 
 			System.out.println(dataset_number);	
+			grid.eliminateAll();
+			grid.runAll();
+			grid.x_wing();
 			try {
-				grid.eliminateAll();
-				grid.runAll();
+				// grid.eliminateAll();
+				// grid.runAll();
+				// grid.x_wing();
 			} catch (Exception e) {
-				System.out.println("Error");
 				error_count++;
+				System.out.println("Error");
+				continue;
+			}
+			if (!grid.checkAll()){
+				error_count++;
+				System.out.println("Error");
 				continue;
 			}
 			int blank_count = grid.printBlackCount();

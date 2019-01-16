@@ -89,7 +89,7 @@ public class Grid extends JPanel  {
 					for (Integer number : unique)
 						if (cell.possible.contains(number)){
 							isChange = true;
-							// System.out.println("missing");
+							// System.out.println("hiddenSingle" + cell.row + cell.col + number);
 							// waitInput();
 							cell.value = number;
 							eliminate(cell);
@@ -100,7 +100,8 @@ public class Grid extends JPanel  {
 	public boolean hiddenSingleAll() {
 		boolean halt = false;
 		while (!halt) {
-			halt = !(hiddenSingle(this.Rows) ||
+			halt = !(
+			hiddenSingle(this.Rows) ||
 			hiddenSingle(this.Cols) ||
 			hiddenSingle(this.Blocks));
 		}
@@ -167,10 +168,11 @@ public class Grid extends JPanel  {
 												// System.out.println("pointing " + curCell.row + curCell.col + number);
 											}
 											isChange = isChange  || removed;
-											if (curCell.possible.size() == 1 && curCell.value == 0){
-												curCell.value = curCell.possible.pop();
-												eliminate(curCell);
-											}
+											// linked list change error
+											// if (curCell.possible.size() == 1 && curCell.value == 0){
+											// 	curCell.value = curCell.possible.pop();
+											// 	eliminate(curCell);
+											// }
 										}
 
 								}
@@ -277,6 +279,86 @@ public class Grid extends JPanel  {
 			item.remove(item.size() - 1);
 		}
 	}
+
+	public boolean x_wing() {
+		boolean isChange = false;
+		for (Cell[] group : Rows) {
+			int[] count = new int[9];
+			ArrayList<Integer> doubleAppearance = new ArrayList<>();
+			Arrays.fill(count, 0);
+			for (Cell cell : group)
+				if (cell.value == 0)
+					for (Integer number : cell.possible)
+						count[number-1]++;
+			for (int i = 0; i < 9; i++)
+				if (count[i] == 2) 
+					doubleAppearance.add(i+1);
+			for (int number : doubleAppearance){
+				ArrayList<Cell> cell1 = new ArrayList<>();
+				for (Cell cell : group)
+					if (cell.value == 0 && cell.possible.contains(number))
+						cell1.add(cell);
+				if (cell1.size() != 2) continue;
+				for (Cell cell21 : Cols[cell1.get(0).col]) {
+					if (cell21.value == 0 && cell21 != cell1.get(0)){
+						Cell cell22 = Rows[cell21.row][cell1.get(1).col];
+						if (
+							cell22.value == 0
+							&& cell21.possible.contains(number)
+							&& cell22.possible.contains(number)
+							&& checkX_Wing(Rows[cell21.row], number, new Cell[]{cell21,cell22})
+						){
+							// System.out.println("del" + number + ", col," + (cell21.col + 1));
+							for(Cell delCell: Cols[cell21.col])
+								if (delCell.value == 0 && delCell != cell21 && delCell != cell1.get(0)){
+									isChange =  delCell.possible.remove((Object) number);
+									if(delCell.possible.size() == 1) {
+										delCell.value = delCell.possible.peek();
+										eliminate(delCell);
+										return isChange;
+									}
+								}
+							// System.out.println("del" + number + ", col," + (cell22.col + 1));
+							for(Cell delCell: Cols[cell22.col]){
+								if (delCell.value == 0 && delCell != cell22 && delCell != cell1.get(1)){
+									isChange =  delCell.possible.remove((Object) number);
+									if(delCell.possible.size() == 1) {
+										delCell.value = delCell.possible.peek();
+										eliminate(delCell);
+										return isChange;
+									}
+								}
+								
+							}
+							if (isChange){
+								return isChange;
+								// System.out.println(
+								// 	"X-wing"
+								// 	+ "number " + number
+								// 	+ " x1 " + cell1.get(0).row + "," +  cell1.get(0).col
+								// 	+ " x2 "  + cell1.get(1).row + "," +  cell1.get(1).col
+								// 	+ " y1 " + cell21.row + "," + cell21.col
+								// 	+ " y2 " + cell22.row + "," + cell22.col
+								// );
+							}
+						}
+					}
+				}
+			}
+					
+		}	
+
+		return isChange;
+	}
+	public boolean checkX_Wing(Cell[] group, int number, Cell[] except){
+		search: for (Cell cell : group){
+			for (Cell xcell : except)
+				if (xcell == cell) break search;
+			if (cell.value == 0 && cell.possible.contains(number))
+				return false;
+		}
+		return true;
+	}
 	
 	public boolean runAll() {
 		boolean halt = false;
@@ -288,6 +370,10 @@ public class Grid extends JPanel  {
 			&& !hiddenPairAll()
 			);
 			 repaint();
+		}
+		if (x_wing()){
+			repaint();
+			runAll();
 		}
 		return halt;
 	}
@@ -327,6 +413,26 @@ public class Grid extends JPanel  {
 		System.out.println(blankCount);
 		return blankCount;
 	}
+
+	public boolean checkGroup(Cell[][] groups){
+		for (Cell[] group : groups){
+			int count = 0;
+			int sum = 0;
+			for(Cell cell : group){
+				count++;
+				sum += cell.value;
+			}
+			if (count == 9)
+				return true;
+			if (sum != 45)
+				return false;
+		}
+		return true;
+	}
+	public boolean checkAll(){
+		return checkGroup(Rows) && checkGroup(Cols) && checkGroup(Blocks);
+	}
+
     @Override 
     public void paintComponent(Graphics g) {
     	g.setColor(Color.WHITE);
