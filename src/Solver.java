@@ -79,6 +79,7 @@ public class Solver{
 				frame.setSize(630,630);
 				frame.setLocationRelativeTo(null);
 				frame.add(grid);
+				frame.addMouseMotionListener(grid);
 				frame.setVisible(true);
 				frame.repaint();
 			}

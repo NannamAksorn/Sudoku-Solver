@@ -3,6 +3,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +13,7 @@ import java.util.LinkedList;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-public class Grid extends JPanel  {
+public class Grid extends JPanel implements MouseMotionListener {
 	/**
 	 * 
 	 */
@@ -35,7 +37,7 @@ public class Grid extends JPanel  {
 				  	temp = new Cell(i,j,cells[i][j]);
 				  }
 				  this.Rows[i][j] = temp;
-				  this.Cols[j][i] = temp;	
+				  this.Cols[j][i] = temp;
 				  add(temp);
 			}
 		}
@@ -360,22 +362,25 @@ public class Grid extends JPanel  {
 		return true;
 	}
 	
-	public boolean runAll() {
-		boolean halt = false;
-		while (!halt) {
-			halt = (
-			hiddenSingleAll() 
-			&& !nakedpairAll()
-			&& !pointingPair()
-			&& !hiddenPairAll()
-			);
-			 repaint();
-		}
-		if (x_wing()){
-			repaint();
+	public void runAll() {
+		hiddenSingleAll();
+		if (nakedpairAll()){
+			// repaint();
 			runAll();
 		}
-		return halt;
+		else if (pointingPair()) {
+			// repaint();
+			runAll();
+		}
+		else if (hiddenPairAll()){
+			// repaint();
+			runAll();
+		}
+		else if (x_wing()){
+			// repaint();
+			runAll();
+		}
+		repaint();
 	}
 
 	public void waitInput() {
@@ -450,7 +455,27 @@ public class Grid extends JPanel  {
             
 		}
 
-    }
+	}
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		int c = e.getX() / (getWidth()/9);
+		int r = e.getY() / (getHeight()/9);
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				if (j == c || i == r)		
+					Rows[i][j].bgcolor = Color.YELLOW;
+				else{
+					Rows[i][j].bgcolor = Color.WHITE;
+				}
+			}
+		}
+		repaint();
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+
+	}
 	
 	
 }
