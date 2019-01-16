@@ -463,7 +463,9 @@ public class Grid extends JPanel implements MouseMotionListener {
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
 				if (j == c || i == r)		
-					Rows[i][j].bgcolor = Color.YELLOW;
+					Rows[i][j].bgcolor = new Color((float) 0.90,
+													(float) 0.95,
+													(float) 0.90);
 				else{
 					Rows[i][j].bgcolor = Color.WHITE;
 				}
