@@ -1,7 +1,7 @@
 # Sudoku-Solver
 This is a rule-based Sudoku Solver project, built on java, which can solve most problem with unique solution. It supported text file input with multiple problem, and output graphical solution with performance report. The project is designed to be simple and clean. There are still some remaining solving techniques left to implement.
 
-![solution](https://user-images.githubusercontent.com/44284362/51250098-f91b1a00-19c7-11e9-8d28-2d6cd96d8689.JPG)
+![solution](https://user-images.githubusercontent.com/44284362/51254410-a6475f80-19d3-11e9-8608-a88a85c2abd5.JPG)
 ## Getting Started
 If you do not have a Java Development Kit, you need to Download and install a compatible [JDK](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 ### Setting JDK path
